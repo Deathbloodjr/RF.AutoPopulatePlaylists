@@ -39,31 +39,61 @@ namespace AutoPopulatePlaylists.Plugins
             var playlist4 = new PlaylistData(node["Playlist 4"]);
             var playlist5 = new PlaylistData(node["Playlist 5"]);
 
-            PlaylistData.Add(Playlist.Playlist1, playlist1);
-            PlaylistData.Add(Playlist.Playlist2, playlist2);
-            PlaylistData.Add(Playlist.Playlist3, playlist3);
-            PlaylistData.Add(Playlist.Playlist4, playlist4);
-            PlaylistData.Add(Playlist.Playlist5, playlist5);
+            if (!PlaylistData.TryAdd(Playlist.Playlist1, playlist1))
+            {
+                PlaylistData[Playlist.Playlist1] = playlist1;
+            }
+            if (!PlaylistData.TryAdd(Playlist.Playlist2, playlist2))
+            {
+                PlaylistData[Playlist.Playlist2] = playlist2;
+            }
+            if (!PlaylistData.TryAdd(Playlist.Playlist3, playlist3))
+            {
+                PlaylistData[Playlist.Playlist3] = playlist3;
+            }
+            if (!PlaylistData.TryAdd(Playlist.Playlist4, playlist4))
+            {
+                PlaylistData[Playlist.Playlist4] = playlist4;
+            }
+            if (!PlaylistData.TryAdd(Playlist.Playlist5, playlist5))
+            {
+                PlaylistData[Playlist.Playlist5] = playlist5;
+            }
 
             if (playlist1.IsEnabled)
             {
-                KeyReplacements.Add("category_playlist_1", playlist1.Name);
+                if (!KeyReplacements.TryAdd("category_playlist_1", playlist1.Name))
+                {
+                    KeyReplacements["category_playlist_1"] = playlist1.Name;
+                }
             }
             if (playlist2.IsEnabled)
             {
-                KeyReplacements.Add("category_playlist_2", playlist2.Name);
+                if (!KeyReplacements.TryAdd("category_playlist_2", playlist2.Name))
+                {
+                    KeyReplacements["category_playlist_2"] = playlist2.Name;
+                }
             }
             if (playlist3.IsEnabled)
             {
-                KeyReplacements.Add("category_playlist_3", playlist3.Name);
+                if (!KeyReplacements.TryAdd("category_playlist_3", playlist3.Name))
+                {
+                    KeyReplacements["category_playlist_3"] = playlist3.Name;
+                }
             }
             if (playlist4.IsEnabled)
             {
-                KeyReplacements.Add("category_playlist_4", playlist4.Name);
+                if (!KeyReplacements.TryAdd("category_playlist_4", playlist4.Name))
+                {
+                    KeyReplacements["category_playlist_4"] = playlist4.Name;
+                }
             }
             if (playlist5.IsEnabled)
             {
-                KeyReplacements.Add("category_playlist_5", playlist5.Name);
+                if (!KeyReplacements.TryAdd("category_playlist_5", playlist5.Name))
+                {
+                    KeyReplacements["category_playlist_5"] = playlist5.Name;
+                }
             }
         }
 
@@ -104,28 +134,7 @@ namespace AutoPopulatePlaylists.Plugins
         //[HarmonyPrefix]
         //public static void UiSongScroller_Setup_Prefix(UiSongScroller __instance)
         //{
-        //    Logger.Log("UiSongScroller_Setup_Prefix");
-
-        //    var songList = SingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.MusicData.MusicInfoAccesserList;
-        //    var datas = SingletonMonoBehaviour<CommonObjects>.Instance.MusicData.Datas;
-
-        //    for (int i = 0; i < songList.Count; i++)
-        //    {
-        //        var musicinfo = songList[i];
-        //        if (musicinfo.Stars[(int)EnsoData.EnsoLevelType.Mania] == 10 ||
-        //            musicinfo.Stars[(int)EnsoData.EnsoLevelType.Ura] == 10)
-        //        {
-        //            if (datas.Count > musicinfo.UniqueId)
-        //            {
-        //                if (datas[musicinfo.UniqueId] != null)
-        //                {
-        //                    datas[musicinfo.UniqueId].MusicFlag |= Scripts.UserData.MusicFlags.IsPlaylist1;
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    SingletonMonoBehaviour<CommonObjects>.Instance.MusicData.Datas = datas;
+        //    InitializePlaylistData();
         //}
 
 
@@ -147,6 +156,8 @@ namespace AutoPopulatePlaylists.Plugins
         [HarmonyPrefix]
         public static void SongScroller_CreateItemList_Prefix(SongScroller __instance, Il2CppSystem.Collections.Generic.List<MusicDataInterface.MusicInfoAccesser> list)
         {
+            InitializePlaylistData();
+
             Playlist currentPlaylist = Playlist.None;
             switch (__instance.filter)
             {

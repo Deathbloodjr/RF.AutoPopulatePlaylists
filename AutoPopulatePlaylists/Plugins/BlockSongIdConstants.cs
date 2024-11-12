@@ -41,6 +41,10 @@ namespace AutoPopulatePlaylists.Plugins
             "ses019",
             "ses020",
             "ses021",
+
+            "sw1op",
+            "gldarm",
+            "tkstad",
         };
     }
 }
