@@ -11,7 +11,7 @@ namespace AutoPopulatePlaylists.Plugins
     class PlaylistData
     {
         public bool IsEnabled { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public List<EnsoData.EnsoLevelType> Difficulties { get; set; } = new List<EnsoData.EnsoLevelType>();
         public List<int> Stars { get; set; } = new List<int>();
         public List<DataConst.CrownType> Crowns { get; set; } = new List<DataConst.CrownType>();
@@ -19,6 +19,8 @@ namespace AutoPopulatePlaylists.Plugins
 
         // I don't know if System.Text.Json is going to work properly within a mod, but I guess we'll give it a shot
         // Worst case, it isn't too rough to convert over to the Lightweight Json library
+        // I forgot about this concern, it's been working perfectly for me, but the real test will be when others start using this mod
+        // Another real test would be when other mods begin using System.Text.Json. Even then, it was working for me in TDMX, but not for others
         public PlaylistData(JsonNode node)
         {
             if (node == null)
