@@ -21,6 +21,7 @@ namespace AutoPopulatePlaylists
 
 
         public ConfigEntry<bool> ConfigEnabled;
+        public ConfigEntry<string> ConfigPlaylistDataPath;
 
 
         public override void Load()
@@ -41,6 +42,11 @@ namespace AutoPopulatePlaylists
                 "Enabled",
                 true,
                 "Enables the mod.");
+
+            ConfigPlaylistDataPath = Config.Bind("General",
+                "PlaylistDataPath",
+                Path.Combine(dataFolder, "AutoPopulatePlaylists.json"),
+                "The file path containing your Playlist Data.");
         }
 
         private void SetupHarmony()

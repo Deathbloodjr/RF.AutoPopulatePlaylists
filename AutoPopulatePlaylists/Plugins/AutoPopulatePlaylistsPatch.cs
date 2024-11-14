@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using HarmonyLib;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Scripts.GameSystem;
 using Scripts.OutGame.SongSelect;
 using Scripts.UserData;
@@ -16,6 +17,13 @@ namespace AutoPopulatePlaylists.Plugins
     public enum Playlist
     {
         None,
+        Pops,
+        Anime,
+        Vocaloid,
+        Variety,
+        Classical,
+        GameMusic,
+        NamcoOriginal,
         Playlist1,
         Playlist2,
         Playlist3,
@@ -31,68 +39,74 @@ namespace AutoPopulatePlaylists.Plugins
 
         public static void InitializePlaylistData()
         {
-            string HardcodedFilePath = @"D:\Workspace\AutoPopulatePlaylists.json";
-            var node = JsonNode.Parse(File.ReadAllText(HardcodedFilePath));
+            string playlistDataFilePath = Plugin.Instance.ConfigPlaylistDataPath.Value;
+            if (!Directory.Exists(playlistDataFilePath))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(playlistDataFilePath));
+            }
+            if (!File.Exists(playlistDataFilePath))
+            {
+                return;
+            }
+            var node = JsonNode.Parse(File.ReadAllText(playlistDataFilePath));
+            var pops = new PlaylistData(node["Pops"]);
+            var anime = new PlaylistData(node["Anime"]);
+            var vocaloid = new PlaylistData(node["Vocaloid"]);
+            var variety = new PlaylistData(node["Variety"]);
+            var classical = new PlaylistData(node["Classical"]);
+            var gamemusic = new PlaylistData(node["GameMusic"]);
+            var namco = new PlaylistData(node["NamcoOriginal"]);
             var playlist1 = new PlaylistData(node["Playlist 1"]);
             var playlist2 = new PlaylistData(node["Playlist 2"]);
             var playlist3 = new PlaylistData(node["Playlist 3"]);
             var playlist4 = new PlaylistData(node["Playlist 4"]);
             var playlist5 = new PlaylistData(node["Playlist 5"]);
 
-            if (!PlaylistData.TryAdd(Playlist.Playlist1, playlist1))
-            {
-                PlaylistData[Playlist.Playlist1] = playlist1;
-            }
-            if (!PlaylistData.TryAdd(Playlist.Playlist2, playlist2))
-            {
-                PlaylistData[Playlist.Playlist2] = playlist2;
-            }
-            if (!PlaylistData.TryAdd(Playlist.Playlist3, playlist3))
-            {
-                PlaylistData[Playlist.Playlist3] = playlist3;
-            }
-            if (!PlaylistData.TryAdd(Playlist.Playlist4, playlist4))
-            {
-                PlaylistData[Playlist.Playlist4] = playlist4;
-            }
-            if (!PlaylistData.TryAdd(Playlist.Playlist5, playlist5))
-            {
-                PlaylistData[Playlist.Playlist5] = playlist5;
-            }
 
-            if (playlist1.IsEnabled)
+            TryAddPlaylistData(Playlist.Pops, pops);
+            TryAddPlaylistData(Playlist.Anime, anime);
+            TryAddPlaylistData(Playlist.Vocaloid, vocaloid);
+            TryAddPlaylistData(Playlist.Variety, variety);
+            TryAddPlaylistData(Playlist.Classical, classical);
+            TryAddPlaylistData(Playlist.GameMusic, gamemusic);
+            TryAddPlaylistData(Playlist.NamcoOriginal, namco);
+            TryAddPlaylistData(Playlist.Playlist1, playlist1);
+            TryAddPlaylistData(Playlist.Playlist2, playlist2);
+            TryAddPlaylistData(Playlist.Playlist3, playlist3);
+            TryAddPlaylistData(Playlist.Playlist4, playlist4);
+            TryAddPlaylistData(Playlist.Playlist5, playlist5);
+
+            // This can't be done this way for genres
+            // It will rename the genre everywhere it appears, rather than just in the filter list
+            //TryAddKeyReplacement("genre_pops", pops);
+            //TryAddKeyReplacement("genre_anime", anime);
+            //TryAddKeyReplacement("genre_vocalo", vocaloid);
+            //TryAddKeyReplacement("genre_", playlist1);
+            //TryAddKeyReplacement("genre_", playlist1);
+            //TryAddKeyReplacement("genre_", playlist1);
+            //TryAddKeyReplacement("genre_", playlist1);
+            TryAddKeyReplacement("category_playlist_1", playlist1);
+            TryAddKeyReplacement("category_playlist_2", playlist2);
+            TryAddKeyReplacement("category_playlist_3", playlist3);
+            TryAddKeyReplacement("category_playlist_4", playlist4);
+            TryAddKeyReplacement("category_playlist_5", playlist5);
+        }
+
+        private static void TryAddPlaylistData(Playlist playlist, PlaylistData playlistData)
+        {
+            if (!PlaylistData.TryAdd(playlist, playlistData))
             {
-                if (!KeyReplacements.TryAdd("category_playlist_1", playlist1.Name))
-                {
-                    KeyReplacements["category_playlist_1"] = playlist1.Name;
-                }
+                PlaylistData[playlist] = playlistData;
             }
-            if (playlist2.IsEnabled)
+        }
+
+        private static void TryAddKeyReplacement(string key, PlaylistData playlistData)
+        {
+            if (playlistData.IsEnabled)
             {
-                if (!KeyReplacements.TryAdd("category_playlist_2", playlist2.Name))
+                if (!KeyReplacements.TryAdd(key, playlistData.Name))
                 {
-                    KeyReplacements["category_playlist_2"] = playlist2.Name;
-                }
-            }
-            if (playlist3.IsEnabled)
-            {
-                if (!KeyReplacements.TryAdd("category_playlist_3", playlist3.Name))
-                {
-                    KeyReplacements["category_playlist_3"] = playlist3.Name;
-                }
-            }
-            if (playlist4.IsEnabled)
-            {
-                if (!KeyReplacements.TryAdd("category_playlist_4", playlist4.Name))
-                {
-                    KeyReplacements["category_playlist_4"] = playlist4.Name;
-                }
-            }
-            if (playlist5.IsEnabled)
-            {
-                if (!KeyReplacements.TryAdd("category_playlist_5", playlist5.Name))
-                {
-                    KeyReplacements["category_playlist_5"] = playlist5.Name;
+                    KeyReplacements[key] = playlistData.Name;
                 }
             }
         }
@@ -102,52 +116,26 @@ namespace AutoPopulatePlaylists.Plugins
             List<MusicDataInterface.MusicInfoAccesser> result = new List<MusicInfoAccesser>();
 
             var songList = SingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.MusicData.MusicInfoAccesserList;
+            Il2CppReferenceArray<Scripts.UserData.MusicInfoEx> downloadedList = SingletonMonoBehaviour<CommonObjects>.Instance.MusicData.Datas;
 
-            var playlistData = PlaylistData[playlist];
-            if (playlistData.IsEnabled)
+            if (PlaylistData.ContainsKey(playlist))
             {
-                for (int i = 0; i < songList.Count; i++)
+                var playlistData = PlaylistData[playlist];
+                if (playlistData.IsEnabled)
                 {
-                    SongData data = new SongData(songList[i]);
-                    if (data.IsValidWithFilter(playlistData))
+                    for (int i = 0; i < songList.Count; i++)
                     {
-                        result.Add(songList[i]);
+                        SongData data = new SongData(songList[i], downloadedList);
+                        if (data.IsValidWithFilter(playlistData))
+                        {
+                            result.Add(songList[i]);
+                        }
                     }
                 }
-
-                //var count = result.Count;
-                //for (int j = 0; j < 400; j++)
-                //{
-                //    for (int i = 0; i < count; i++)
-                //    {
-                //        result.Add(result[i]);
-                //    }
-                //}
             }
 
             return result;
         }
-
-        //[HarmonyPatch(typeof(UiSongScroller))]
-        //[HarmonyPatch(nameof(UiSongScroller.Setup))]
-        //[HarmonyPatch(MethodType.Normal)]
-        //[HarmonyPrefix]
-        //public static void UiSongScroller_Setup_Prefix(UiSongScroller __instance)
-        //{
-        //    InitializePlaylistData();
-        //}
-
-
-
-        //[HarmonyPatch(typeof(SongScroller))]
-        //[HarmonyPatch(nameof(SongScroller.IsSameList))]
-        //[HarmonyPatch(MethodType.Normal)]
-        //[HarmonyPrefix]
-        //public static void SongScroller_IsSameList_Prefix(SongScroller __instance, FilterTypes filter)
-        //{
-        //    Logger.Log("SongScroller_IsSameList_Prefix");
-        //    Logger.Log("filter: " + filter.ToString());
-        //}
 
 
         [HarmonyPatch(typeof(SongScroller))]
@@ -161,6 +149,13 @@ namespace AutoPopulatePlaylists.Plugins
             Playlist currentPlaylist = Playlist.None;
             switch (__instance.filter)
             {
+                case FilterTypes.Pops: currentPlaylist = Playlist.Pops; break;
+                case FilterTypes.Anime: currentPlaylist = Playlist.Anime; break;
+                case FilterTypes.Vocalo: currentPlaylist = Playlist.Vocaloid; break;
+                case FilterTypes.Variety: currentPlaylist = Playlist.Variety; break;
+                case FilterTypes.Classic: currentPlaylist = Playlist.Classical; break;
+                case FilterTypes.Game: currentPlaylist = Playlist.GameMusic; break;
+                case FilterTypes.Namco: currentPlaylist = Playlist.NamcoOriginal; break;
                 case FilterTypes.Playlist1: currentPlaylist = Playlist.Playlist1; break;
                 case FilterTypes.Playlist2: currentPlaylist = Playlist.Playlist2; break;
                 case FilterTypes.Playlist3: currentPlaylist = Playlist.Playlist3; break;

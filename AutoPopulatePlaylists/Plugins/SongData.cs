@@ -1,4 +1,5 @@
-﻿using Scripts.UserData;
+﻿using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Scripts.UserData;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,15 +12,31 @@ namespace AutoPopulatePlaylists.Plugins
     {
         List<SongDifficultyData> DifficultyData { get; set; } = new List<SongDifficultyData>();
 
-        public SongData(MusicDataInterface.MusicInfoAccesser musicInfo)
+        public SongData(MusicDataInterface.MusicInfoAccesser musicInfo, Il2CppReferenceArray<Scripts.UserData.MusicInfoEx> downloadList)
         {
+            if (downloadList.Length < musicInfo.UniqueId)
+            {
+                return;
+            }
+            if (musicInfo.Debug)
+            {
+                return;
+            }
+            // If songs aren't downloaded, they can still show up, and just download them at that point, no?
+            //if (!downloadList[musicInfo.UniqueId].IsDownloaded)
+            //{
+            //    return;
+            //}
             if (!BlockSongIdConstants.SongIds.Contains(musicInfo.Id))
             {
                 DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Easy));
                 DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Normal));
                 DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Hard));
                 DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Mania));
-                DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Ura));
+                if (musicInfo.Stars[(int)EnsoData.EnsoLevelType.Ura] != 0)
+                {
+                    DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Ura));
+                }
             }
         }
 
@@ -47,10 +64,6 @@ namespace AutoPopulatePlaylists.Plugins
             public SongDifficultyData(MusicDataInterface.MusicInfoAccesser musicInfo, EnsoData.EnsoLevelType level)
             {
                 IsEnabled = true;
-                if (musicInfo.Debug)
-                {
-                    IsEnabled = false;
-                }
                 EnsoLevelType = level;
                 Star = musicInfo.Stars[(int)EnsoLevelType];
                 Genre = (EnsoData.SongGenre)musicInfo.GenreNo;
