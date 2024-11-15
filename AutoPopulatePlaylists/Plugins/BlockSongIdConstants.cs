@@ -10,17 +10,7 @@ namespace AutoPopulatePlaylists.Plugins
     {
         public static List<string> SongIds = new List<string>()
         {
-            "kmbaby",
-            "keion",
-            "ssnkjs",
-            "rezer2",
-            "ohdcry",
-            "bluesa",
-            "dppkm",
-            "dagasi",
-            "ngzsnc",
-            "byosin",
-            "japari",
+            // These are sessions for Taiko Band mode (I think)
             "ses001",
             "ses002",
             "ses004",
@@ -42,6 +32,20 @@ namespace AutoPopulatePlaylists.Plugins
             "ses020",
             "ses021",
 
+            // These are switch exclusive music pass songs
+            "kmbaby",
+            "keion",
+            "ssnkjs",
+            "rezer2",
+            "ohdcry",
+            "bluesa",
+            "dppkm",
+            "dagasi",
+            "ngzsnc",
+            "byosin",
+            "japari",
+
+            // These are switch exclusive DLC songs
             "sw1op",
             "gldarm",
             "tkstad",

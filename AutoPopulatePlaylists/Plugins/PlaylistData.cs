@@ -10,7 +10,7 @@ namespace AutoPopulatePlaylists.Plugins
 {
     class PlaylistData
     {
-        public bool IsEnabled { get; set; }
+        public bool IsEnabled { get; set; } = false;
         public string Name { get; set; } = string.Empty;
         public List<EnsoData.EnsoLevelType> Difficulties { get; set; } = new List<EnsoData.EnsoLevelType>();
         public List<int> Stars { get; set; } = new List<int>();
@@ -23,13 +23,12 @@ namespace AutoPopulatePlaylists.Plugins
         // Another real test would be when other mods begin using System.Text.Json. Even then, it was working for me in TDMX, but not for others
         public PlaylistData(JsonNode node)
         {
-            if (node == null)
+            if (node != null)
             {
-                IsEnabled = false;
-            }
-            else
-            {
-                IsEnabled = true;
+                if (node["Enabled"] != null)
+                {
+                    IsEnabled = node["Enabled"].GetValue<bool>();
+                }
                 if (node["Name"] != null)
                 {
                     Name = node["Name"].GetValue<string>();

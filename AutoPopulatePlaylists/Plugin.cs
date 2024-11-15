@@ -53,12 +53,12 @@ namespace AutoPopulatePlaylists
         {
             // Patch methods
             _harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
-
             if (ConfigEnabled.Value)
             {
                 bool result = true;
                 // If any PatchFile fails, result will become false
                 result &= PatchFile(typeof(AutoPopulatePlaylistsPatch));
+                DefaultJsonCreation.CreateDefaultFile();
                 AutoPopulatePlaylistsPatch.InitializePlaylistData();
                 if (result)
                 {

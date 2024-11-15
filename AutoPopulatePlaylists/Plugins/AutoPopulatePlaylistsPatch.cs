@@ -46,14 +46,15 @@ namespace AutoPopulatePlaylists.Plugins
             {
                 return;
             }
-            var node = JsonNode.Parse(File.ReadAllText(playlistDataFilePath));
+            var text = File.ReadAllText(playlistDataFilePath);
+            var node = JsonNode.Parse(text);
             var pops = new PlaylistData(node["Pops"]);
             var anime = new PlaylistData(node["Anime"]);
             var vocaloid = new PlaylistData(node["Vocaloid"]);
             var variety = new PlaylistData(node["Variety"]);
             var classical = new PlaylistData(node["Classical"]);
-            var gamemusic = new PlaylistData(node["GameMusic"]);
-            var namco = new PlaylistData(node["NamcoOriginal"]);
+            var gamemusic = new PlaylistData(node["Game Music"]);
+            var namco = new PlaylistData(node["Namco Original"]);
             var playlist1 = new PlaylistData(node["Playlist 1"]);
             var playlist2 = new PlaylistData(node["Playlist 2"]);
             var playlist3 = new PlaylistData(node["Playlist 3"]);
