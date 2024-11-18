@@ -12,31 +12,25 @@ namespace AutoPopulatePlaylists.Plugins
     {
         List<SongDifficultyData> DifficultyData { get; set; } = new List<SongDifficultyData>();
 
-        public SongData(MusicDataInterface.MusicInfoAccesser musicInfo, Il2CppReferenceArray<Scripts.UserData.MusicInfoEx> downloadList)
+        public SongData(MusicDataInterface.MusicInfoAccesser musicInfo)
         {
-            if (downloadList.Length < musicInfo.UniqueId)
-            {
-                return;
-            }
+           
             if (musicInfo.Debug)
             {
                 return;
             }
-            // If songs aren't downloaded, they can still show up, and just download them at that point, no?
-            //if (!downloadList[musicInfo.UniqueId].IsDownloaded)
-            //{
-            //    return;
-            //}
-            if (!BlockSongIdConstants.SongIds.Contains(musicInfo.Id))
+            if (musicInfo.Session != "")
             {
-                DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Easy));
-                DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Normal));
-                DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Hard));
-                DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Mania));
-                if (musicInfo.Stars[(int)EnsoData.EnsoLevelType.Ura] != 0)
-                {
-                    DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Ura));
-                }
+                return;
+            }
+
+            DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Easy));
+            DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Normal));
+            DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Hard));
+            DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Mania));
+            if (musicInfo.Stars[(int)EnsoData.EnsoLevelType.Ura] != 0)
+            {
+                DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Ura));
             }
         }
 

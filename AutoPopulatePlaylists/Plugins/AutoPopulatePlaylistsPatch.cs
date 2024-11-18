@@ -10,7 +10,6 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using static MusicDataInterface;
 
 namespace AutoPopulatePlaylists.Plugins
 {
@@ -99,10 +98,16 @@ namespace AutoPopulatePlaylists.Plugins
 
         static List<MusicDataInterface.MusicInfoAccesser> GetFilteredList(Playlist playlist)
         {
-            List<MusicDataInterface.MusicInfoAccesser> result = new List<MusicInfoAccesser>();
+            List<MusicDataInterface.MusicInfoAccesser> result = new List<MusicDataInterface.MusicInfoAccesser>();
 
             var songList = SingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.MusicData.MusicInfoAccesserList;
-            Il2CppReferenceArray<Scripts.UserData.MusicInfoEx> downloadedList = SingletonMonoBehaviour<CommonObjects>.Instance.MusicData.Datas;
+            var musicPassSongList = SingletonMonoBehaviour<CommonObjects>.Instance.ServerDataCache.SonglistDetails.ary_release_song;
+            var grouping = SingletonMonoBehaviour<CommonObjects>.Instance.ServerDataCache.GroupingDetails.ary_grouping;
+            List<int> validUniqueIds = new List<int>();
+            for (int i = 0; i < musicPassSongList.Count; i++)
+            {
+                validUniqueIds.Add(musicPassSongList[i].song_uid);
+            }
 
             if (PlaylistData.ContainsKey(playlist))
             {
@@ -111,10 +116,20 @@ namespace AutoPopulatePlaylists.Plugins
                 {
                     for (int i = 0; i < songList.Count; i++)
                     {
-                        SongData data = new SongData(songList[i], downloadedList);
-                        if (data.IsValidWithFilter(playlistData))
+                        if (songList[i].Debug)
                         {
-                            result.Add(songList[i]);
+                            continue;
+                        }
+                        var uniqueId = songList[i].UniqueId;
+                        if ((validUniqueIds.Contains(uniqueId) && 
+                            SingletonMonoBehaviour<CommonObjects>.Instance.ServerDataCache.IsAvailableSong(songList[i])) || 
+                            songList[i].IsDefault)
+                        {
+                            SongData data = new SongData(songList[i]);
+                            if (data.IsValidWithFilter(playlistData))
+                            {
+                                result.Add(songList[i]);
+                            }
                         }
                     }
                 }
