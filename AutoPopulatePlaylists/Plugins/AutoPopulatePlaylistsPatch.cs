@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using HarmonyLib;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Scripts.GameSystem;
 using Scripts.OutGame.SongSelect;
 using Scripts.UserData;
@@ -9,13 +10,19 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using static MusicDataInterface;
 
 namespace AutoPopulatePlaylists.Plugins
 {
     public enum Playlist
     {
         None,
+        Pops,
+        Anime,
+        Vocaloid,
+        Variety,
+        Classical,
+        GameMusic,
+        NamcoOriginal,
         Playlist1,
         Playlist2,
         Playlist3,
@@ -27,127 +34,109 @@ namespace AutoPopulatePlaylists.Plugins
     {
         static Dictionary<Playlist, PlaylistData> PlaylistData = new Dictionary<Playlist, PlaylistData>();
 
-        static Dictionary<string, string> KeyReplacements = new Dictionary<string, string>();
-
         public static void InitializePlaylistData()
         {
-            string HardcodedFilePath = @"D:\Workspace\AutoPopulatePlaylists.json";
-            var node = JsonNode.Parse(File.ReadAllText(HardcodedFilePath));
+            string playlistDataFilePath = Plugin.Instance.ConfigPlaylistDataPath.Value;
+            if (!Directory.Exists(playlistDataFilePath))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(playlistDataFilePath));
+            }
+            if (!File.Exists(playlistDataFilePath))
+            {
+                return;
+            }
+            var text = File.ReadAllText(playlistDataFilePath);
+            var node = JsonNode.Parse(text);
+            var pops = new PlaylistData(node["Pops"]);
+            var anime = new PlaylistData(node["Anime"]);
+            var vocaloid = new PlaylistData(node["Vocaloid"]);
+            var variety = new PlaylistData(node["Variety"]);
+            var classical = new PlaylistData(node["Classical"]);
+            var gamemusic = new PlaylistData(node["Game Music"]);
+            var namco = new PlaylistData(node["Namco Original"]);
             var playlist1 = new PlaylistData(node["Playlist 1"]);
             var playlist2 = new PlaylistData(node["Playlist 2"]);
             var playlist3 = new PlaylistData(node["Playlist 3"]);
             var playlist4 = new PlaylistData(node["Playlist 4"]);
             var playlist5 = new PlaylistData(node["Playlist 5"]);
 
-            if (!PlaylistData.TryAdd(Playlist.Playlist1, playlist1))
-            {
-                PlaylistData[Playlist.Playlist1] = playlist1;
-            }
-            if (!PlaylistData.TryAdd(Playlist.Playlist2, playlist2))
-            {
-                PlaylistData[Playlist.Playlist2] = playlist2;
-            }
-            if (!PlaylistData.TryAdd(Playlist.Playlist3, playlist3))
-            {
-                PlaylistData[Playlist.Playlist3] = playlist3;
-            }
-            if (!PlaylistData.TryAdd(Playlist.Playlist4, playlist4))
-            {
-                PlaylistData[Playlist.Playlist4] = playlist4;
-            }
-            if (!PlaylistData.TryAdd(Playlist.Playlist5, playlist5))
-            {
-                PlaylistData[Playlist.Playlist5] = playlist5;
-            }
 
-            if (playlist1.IsEnabled)
+            TryAddPlaylistData(Playlist.Pops, pops);
+            TryAddPlaylistData(Playlist.Anime, anime);
+            TryAddPlaylistData(Playlist.Vocaloid, vocaloid);
+            TryAddPlaylistData(Playlist.Variety, variety);
+            TryAddPlaylistData(Playlist.Classical, classical);
+            TryAddPlaylistData(Playlist.GameMusic, gamemusic);
+            TryAddPlaylistData(Playlist.NamcoOriginal, namco);
+            TryAddPlaylistData(Playlist.Playlist1, playlist1);
+            TryAddPlaylistData(Playlist.Playlist2, playlist2);
+            TryAddPlaylistData(Playlist.Playlist3, playlist3);
+            TryAddPlaylistData(Playlist.Playlist4, playlist4);
+            TryAddPlaylistData(Playlist.Playlist5, playlist5);
+        }
+
+        private static void TryAddPlaylistData(Playlist playlist, PlaylistData playlistData)
+        {
+            if (playlistData.IsEnabled)
             {
-                if (!KeyReplacements.TryAdd("category_playlist_1", playlist1.Name))
+                // Add PlaylistData
+                if (!PlaylistData.TryAdd(playlist, playlistData))
                 {
-                    KeyReplacements["category_playlist_1"] = playlist1.Name;
+                    PlaylistData[playlist] = playlistData;
                 }
             }
-            if (playlist2.IsEnabled)
+            else
             {
-                if (!KeyReplacements.TryAdd("category_playlist_2", playlist2.Name))
+                // Remove PlaylistData if it exists
+                if (PlaylistData.ContainsKey(playlist))
                 {
-                    KeyReplacements["category_playlist_2"] = playlist2.Name;
+                    PlaylistData.Remove(playlist);
                 }
             }
-            if (playlist3.IsEnabled)
-            {
-                if (!KeyReplacements.TryAdd("category_playlist_3", playlist3.Name))
-                {
-                    KeyReplacements["category_playlist_3"] = playlist3.Name;
-                }
-            }
-            if (playlist4.IsEnabled)
-            {
-                if (!KeyReplacements.TryAdd("category_playlist_4", playlist4.Name))
-                {
-                    KeyReplacements["category_playlist_4"] = playlist4.Name;
-                }
-            }
-            if (playlist5.IsEnabled)
-            {
-                if (!KeyReplacements.TryAdd("category_playlist_5", playlist5.Name))
-                {
-                    KeyReplacements["category_playlist_5"] = playlist5.Name;
-                }
-            }
+            
         }
 
         static List<MusicDataInterface.MusicInfoAccesser> GetFilteredList(Playlist playlist)
         {
-            List<MusicDataInterface.MusicInfoAccesser> result = new List<MusicInfoAccesser>();
+            List<MusicDataInterface.MusicInfoAccesser> result = new List<MusicDataInterface.MusicInfoAccesser>();
 
             var songList = SingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.MusicData.MusicInfoAccesserList;
-
-            var playlistData = PlaylistData[playlist];
-            if (playlistData.IsEnabled)
+            var musicPassSongList = SingletonMonoBehaviour<CommonObjects>.Instance.ServerDataCache.SonglistDetails.ary_release_song;
+            var grouping = SingletonMonoBehaviour<CommonObjects>.Instance.ServerDataCache.GroupingDetails.ary_grouping;
+            List<int> validUniqueIds = new List<int>();
+            for (int i = 0; i < musicPassSongList.Count; i++)
             {
-                for (int i = 0; i < songList.Count; i++)
+                validUniqueIds.Add(musicPassSongList[i].song_uid);
+            }
+
+            if (PlaylistData.ContainsKey(playlist))
+            {
+                var playlistData = PlaylistData[playlist];
+                if (playlistData.IsEnabled)
                 {
-                    SongData data = new SongData(songList[i]);
-                    if (data.IsValidWithFilter(playlistData))
+                    for (int i = 0; i < songList.Count; i++)
                     {
-                        result.Add(songList[i]);
+                        if (songList[i].Debug)
+                        {
+                            continue;
+                        }
+                        var uniqueId = songList[i].UniqueId;
+                        if ((validUniqueIds.Contains(uniqueId) && 
+                            SingletonMonoBehaviour<CommonObjects>.Instance.ServerDataCache.IsAvailableSong(songList[i])) || 
+                            songList[i].IsDefault)
+                        {
+                            SongData data = new SongData(songList[i]);
+                            if (data.IsValidWithFilter(playlistData))
+                            {
+                                result.Add(songList[i]);
+                            }
+                        }
                     }
                 }
-
-                //var count = result.Count;
-                //for (int j = 0; j < 400; j++)
-                //{
-                //    for (int i = 0; i < count; i++)
-                //    {
-                //        result.Add(result[i]);
-                //    }
-                //}
             }
 
             return result;
         }
-
-        //[HarmonyPatch(typeof(UiSongScroller))]
-        //[HarmonyPatch(nameof(UiSongScroller.Setup))]
-        //[HarmonyPatch(MethodType.Normal)]
-        //[HarmonyPrefix]
-        //public static void UiSongScroller_Setup_Prefix(UiSongScroller __instance)
-        //{
-        //    InitializePlaylistData();
-        //}
-
-
-
-        //[HarmonyPatch(typeof(SongScroller))]
-        //[HarmonyPatch(nameof(SongScroller.IsSameList))]
-        //[HarmonyPatch(MethodType.Normal)]
-        //[HarmonyPrefix]
-        //public static void SongScroller_IsSameList_Prefix(SongScroller __instance, FilterTypes filter)
-        //{
-        //    Logger.Log("SongScroller_IsSameList_Prefix");
-        //    Logger.Log("filter: " + filter.ToString());
-        //}
 
 
         [HarmonyPatch(typeof(SongScroller))]
@@ -158,41 +147,61 @@ namespace AutoPopulatePlaylists.Plugins
         {
             InitializePlaylistData();
 
-            Playlist currentPlaylist = Playlist.None;
-            switch (__instance.filter)
-            {
-                case FilterTypes.Playlist1: currentPlaylist = Playlist.Playlist1; break;
-                case FilterTypes.Playlist2: currentPlaylist = Playlist.Playlist2; break;
-                case FilterTypes.Playlist3: currentPlaylist = Playlist.Playlist3; break;
-                case FilterTypes.Playlist4: currentPlaylist = Playlist.Playlist4; break;
-                case FilterTypes.Playlist5: currentPlaylist = Playlist.Playlist5; break;
-            }
+            Playlist currentPlaylist = GetPlaylistFromFilterType(__instance.filter);
+
             if (currentPlaylist != Playlist.None)
             {
-                var newList = GetFilteredList(currentPlaylist);
-                if (newList.Count > 0)
+                if (PlaylistData.ContainsKey(currentPlaylist) &&
+                    PlaylistData[currentPlaylist].IsEnabled)
                 {
-                    list.Clear();
-                    for (int i = 0; i < newList.Count; i++)
+                    var newList = GetFilteredList(currentPlaylist);
+                    if (newList.Count > 0)
                     {
-                        list.Add(newList[i]);
+                        list.Clear();
+                        for (int i = 0; i < newList.Count; i++)
+                        {
+                            list.Add(newList[i]);
+                        }
                     }
                 }
             }
         }
 
-        [HarmonyPatch(typeof(WordDataManager))]
-        [HarmonyPatch(nameof(WordDataManager.GetWordListInfo))]
-        [HarmonyPatch(new Type[] { typeof(string) })]
+        public static Playlist GetPlaylistFromFilterType(FilterTypes filterType)
+        {
+            switch (filterType)
+            {
+                case FilterTypes.Pops: return Playlist.Pops;
+                case FilterTypes.Anime: return Playlist.Anime;
+                case FilterTypes.Vocalo: return Playlist.Vocaloid;
+                case FilterTypes.Variety: return Playlist.Variety;
+                case FilterTypes.Classic: return Playlist.Classical;
+                case FilterTypes.Game: return Playlist.GameMusic;
+                case FilterTypes.Namco: return Playlist.NamcoOriginal;
+                case FilterTypes.Playlist1: return Playlist.Playlist1;
+                case FilterTypes.Playlist2: return Playlist.Playlist2;
+                case FilterTypes.Playlist3: return Playlist.Playlist3;
+                case FilterTypes.Playlist4: return Playlist.Playlist4;
+                case FilterTypes.Playlist5: return Playlist.Playlist5;
+                default: return Playlist.None;
+            }
+        }
+
+
+        [HarmonyPatch(typeof(UiFilterButton))]
+        [HarmonyPatch(nameof(UiFilterButton.SetPanel))]
         [HarmonyPatch(MethodType.Normal)]
         [HarmonyPostfix]
-        public static void WordDataManager_GetWordListInfo_Postfix(WordDataManager __instance, ref WordDataManager.WordListKeysInfo __result, string key)
+        public static void UiFilterButton_SetPanel_Postfix(UiFilterButton __instance)
         {
-            if (key != null)
+            var playlist = GetPlaylistFromFilterType(__instance.filter);
+            if (PlaylistData.ContainsKey(playlist))
             {
-                if (KeyReplacements.ContainsKey(key))
+                var playlistData = PlaylistData[playlist];
+                if (playlistData.Name != "")
                 {
-                    __result.Text = KeyReplacements[key];
+                    __instance.textOn.SetTextRawOnly(playlistData.Name);
+                    __instance.textOff.SetTextRawOnly(playlistData.Name);
                 }
             }
         }

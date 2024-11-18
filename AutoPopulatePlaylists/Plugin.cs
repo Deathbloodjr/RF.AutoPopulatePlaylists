@@ -21,6 +21,7 @@ namespace AutoPopulatePlaylists
 
 
         public ConfigEntry<bool> ConfigEnabled;
+        public ConfigEntry<string> ConfigPlaylistDataPath;
 
 
         public override void Load()
@@ -41,18 +42,23 @@ namespace AutoPopulatePlaylists
                 "Enabled",
                 true,
                 "Enables the mod.");
+
+            ConfigPlaylistDataPath = Config.Bind("General",
+                "PlaylistDataPath",
+                Path.Combine(dataFolder, "AutoPopulatePlaylists.json"),
+                "The file path containing your Playlist Data.");
         }
 
         private void SetupHarmony()
         {
             // Patch methods
             _harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
-
             if (ConfigEnabled.Value)
             {
                 bool result = true;
                 // If any PatchFile fails, result will become false
                 result &= PatchFile(typeof(AutoPopulatePlaylistsPatch));
+                DefaultJsonCreation.CreateDefaultFile();
                 AutoPopulatePlaylistsPatch.InitializePlaylistData();
                 if (result)
                 {

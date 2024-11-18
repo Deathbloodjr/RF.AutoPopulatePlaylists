@@ -1,4 +1,5 @@
-﻿using Scripts.UserData;
+﻿using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Scripts.UserData;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,12 +14,22 @@ namespace AutoPopulatePlaylists.Plugins
 
         public SongData(MusicDataInterface.MusicInfoAccesser musicInfo)
         {
-            if (!BlockSongIdConstants.SongIds.Contains(musicInfo.Id))
+           
+            if (musicInfo.Debug)
             {
-                DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Easy));
-                DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Normal));
-                DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Hard));
-                DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Mania));
+                return;
+            }
+            if (musicInfo.Session != "")
+            {
+                return;
+            }
+
+            DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Easy));
+            DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Normal));
+            DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Hard));
+            DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Mania));
+            if (musicInfo.Stars[(int)EnsoData.EnsoLevelType.Ura] != 0)
+            {
                 DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Ura));
             }
         }
@@ -47,10 +58,6 @@ namespace AutoPopulatePlaylists.Plugins
             public SongDifficultyData(MusicDataInterface.MusicInfoAccesser musicInfo, EnsoData.EnsoLevelType level)
             {
                 IsEnabled = true;
-                if (musicInfo.Debug)
-                {
-                    IsEnabled = false;
-                }
                 EnsoLevelType = level;
                 Star = musicInfo.Stars[(int)EnsoLevelType];
                 Genre = (EnsoData.SongGenre)musicInfo.GenreNo;
