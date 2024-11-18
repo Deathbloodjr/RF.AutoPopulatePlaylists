@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using static AutoPopulatePlaylists.Plugins.SongData;
 
 namespace AutoPopulatePlaylists.Plugins
 {
@@ -114,6 +115,7 @@ namespace AutoPopulatePlaylists.Plugins
                 var playlistData = PlaylistData[playlist];
                 if (playlistData.IsEnabled)
                 {
+                    List<SongDifficultyData> songDataList = new List<SongDifficultyData>();
                     for (int i = 0; i < songList.Count; i++)
                     {
                         if (songList[i].Debug)
@@ -126,14 +128,20 @@ namespace AutoPopulatePlaylists.Plugins
                             songList[i].IsDefault)
                         {
                             SongData data = new SongData(songList[i]);
-                            if (data.IsValidWithFilter(playlistData))
-                            {
-                                result.Add(songList[i]);
-                            }
+                            songDataList.AddRange(data.GetValidSongDifficulties(playlistData));
+                            //if (data.IsValidWithFilter(playlistData))
+                            //{
+                            //    songDataList.Add()
+                            //    result.Add(songList[i]);
+                            //}
                         }
                     }
+
+
                 }
             }
+
+
 
             return result;
         }

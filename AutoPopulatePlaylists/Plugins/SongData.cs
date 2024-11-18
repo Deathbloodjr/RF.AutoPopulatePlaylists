@@ -34,6 +34,19 @@ namespace AutoPopulatePlaylists.Plugins
             }
         }
 
+        public List<SongDifficultyData> GetValidSongDifficulties(PlaylistData playlistData)
+        {
+            List<SongDifficultyData> validDifficulties = new List<SongDifficultyData>();
+            for (int i = 0; i < DifficultyData.Count; i++)
+            {
+                if (DifficultyData[i].IsValidWithFilter(playlistData))
+                {
+                    validDifficulties.Add(DifficultyData[i]);
+                }
+            }
+            return validDifficulties;
+        }
+
         public bool IsValidWithFilter(PlaylistData playlistData)
         {
             for (int i = 0; i < DifficultyData.Count; i++)
@@ -50,6 +63,7 @@ namespace AutoPopulatePlaylists.Plugins
         internal class SongDifficultyData
         {
             public bool IsEnabled { get; set; }
+            public MusicDataInterface.MusicInfoAccesser MusicInfo { get; set; }
             public EnsoData.EnsoLevelType EnsoLevelType { get; set; }
             public int Star { get; set; }
             public DataConst.CrownType Crown { get; set; }
@@ -57,6 +71,7 @@ namespace AutoPopulatePlaylists.Plugins
 
             public SongDifficultyData(MusicDataInterface.MusicInfoAccesser musicInfo, EnsoData.EnsoLevelType level)
             {
+                MusicInfo = musicInfo;
                 IsEnabled = true;
                 EnsoLevelType = level;
                 Star = musicInfo.Stars[(int)EnsoLevelType];
