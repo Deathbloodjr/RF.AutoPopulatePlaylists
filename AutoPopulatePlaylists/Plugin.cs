@@ -58,6 +58,7 @@ namespace AutoPopulatePlaylists
                 bool result = true;
                 // If any PatchFile fails, result will become false
                 result &= PatchFile(typeof(AutoPopulatePlaylistsPatch));
+                result &= PatchFile(typeof(LanguageHook));
                 DefaultJsonCreation.CreateDefaultFile();
                 AutoPopulatePlaylistsPatch.InitializePlaylistData();
                 if (result)

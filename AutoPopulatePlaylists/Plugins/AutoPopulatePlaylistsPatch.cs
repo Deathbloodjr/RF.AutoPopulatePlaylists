@@ -137,10 +137,29 @@ namespace AutoPopulatePlaylists.Plugins
                         }
                     }
 
+                    List<SortType> sorts = new List<SortType>()
+                    {
+                        SortType.AlphabeticalTitle
+                    };
+
+                    songDataList = SongListSorter.SortSongs(songDataList, sorts);
+
+                    bool removeDuplicates = SongListSorter.RemoveDuplicates(sorts);
+                    for (int i = 0; i < songDataList.Count; i++)
+                    {
+                        if (i >= 1)
+                        {
+                            if (removeDuplicates && songDataList[i].MusicInfo == result[result.Count - 1])
+                            {
+                                continue;
+                            }
+                        }
+                        result.Add(songDataList[i].MusicInfo);
+                    }
+
 
                 }
             }
-
 
 
             return result;

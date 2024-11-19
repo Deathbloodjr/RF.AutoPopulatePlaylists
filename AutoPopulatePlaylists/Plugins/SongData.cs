@@ -63,23 +63,190 @@ namespace AutoPopulatePlaylists.Plugins
         internal class SongDifficultyData
         {
             public bool IsEnabled { get; set; }
-            public MusicDataInterface.MusicInfoAccesser MusicInfo { get; set; }
-            public EnsoData.EnsoLevelType EnsoLevelType { get; set; }
-            public int Star { get; set; }
-            public DataConst.CrownType Crown { get; set; }
-            public EnsoData.SongGenre Genre { get; set; }
-
+            public MusicDataInterface.MusicInfoAccesser MusicInfo { get; set; } = null;
+            public EnsoData.EnsoLevelType EnsoLevelType { get; set; } = EnsoData.EnsoLevelType.Num;
+            public EnsoRecordInfo Record { get; set; }
+            public EnsoData.SongGenre Genre
+            {
+                get
+                {
+                    if (MusicInfo != null)
+                    {
+                        return (EnsoData.SongGenre)MusicInfo.GenreNo;
+                    }
+                    else
+                    {
+                        return EnsoData.SongGenre.Namco;
+                    }
+                }
+            }
+            public int Star { 
+                get
+                {
+                    if (MusicInfo != null && EnsoLevelType != EnsoData.EnsoLevelType.Num)
+                    {
+                        return MusicInfo.Stars[(int)EnsoLevelType];
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+                }
+            }
+            public DataConst.CrownType Crown
+            {
+                get
+                {
+                    return Record.crown;
+                }
+            }
+            public int Score
+            {
+                get
+                {
+                    return Record.normalHiScore.score;
+                }
+            }
+            public int ScoreShinuchi
+            {
+                get
+                {
+                    return Record.shinuchiHiScore.score;
+                }
+            }
+            int NormalNoteCount
+            {
+                get
+                {
+                    return Record.normalHiScore.excellent + Record.normalHiScore.good + Record.normalHiScore.bad;
+                }
+            }
+            int ShinuchiNoteCount
+            {
+                get
+                {
+                    return Record.shinuchiHiScore.excellent + Record.shinuchiHiScore.good + Record.shinuchiHiScore.bad;
+                }
+            }
+            public int Goods
+            {
+                get
+                {
+                    // This isn't really needed for Goods, but it is necessary for OKs and Bads
+                    return Math.Max(Record.normalHiScore.excellent, Record.shinuchiHiScore.excellent);
+                }
+            }
+            public int Oks
+            {
+                get
+                {
+                    if (NormalNoteCount != 0 && ShinuchiNoteCount != 0)
+                    {
+                        return Math.Min(Record.normalHiScore.good, Record.shinuchiHiScore.good);
+                    }
+                    else if (NormalNoteCount != 0)
+                    {
+                        return Record.normalHiScore.good;
+                    }
+                    else if (ShinuchiNoteCount != 0)
+                    {
+                        return Record.shinuchiHiScore.good;
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+                }
+            }
+            public int Bads
+            {
+                get
+                {
+                    if (NormalNoteCount != 0 && ShinuchiNoteCount != 0)
+                    {
+                        return Math.Min(Record.normalHiScore.bad, Record.shinuchiHiScore.bad);
+                    }
+                    else if (NormalNoteCount != 0)
+                    {
+                        return Record.normalHiScore.bad;
+                    }
+                    else if (ShinuchiNoteCount != 0)
+                    {
+                        return Record.shinuchiHiScore.bad;
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+                }
+            }
+            public int Drumroll
+            {
+                get
+                {
+                    return Math.Max(Record.normalHiScore.renda, Record.shinuchiHiScore.renda);
+                }
+            }
+            public int Combo
+            {
+                get
+                {
+                    return Math.Max(Record.normalHiScore.combo, Record.shinuchiHiScore.combo);
+                }
+            }
+            public int PlayCount
+            {
+                get
+                {
+                    return Record.playCount;
+                }
+            }
+            /// <summary>
+            /// Float from 0.0 to 1.0
+            /// </summary>
+            public float Accuracy
+            {
+                get
+                {
+                    return MathF.Max(NormalAccuracy, ShinuchiAccuracy);
+                }
+            }
+            float NormalAccuracy
+            {
+                get
+                {
+                    int numNotes = Record.normalHiScore.excellent + Record.normalHiScore.good + Record.normalHiScore.bad;
+                    if (numNotes == 0)
+                    {
+                        return 0f;
+                    }
+                    return (Record.normalHiScore.excellent + (Record.normalHiScore.good / 2f)) / numNotes;
+                }
+            }
+            float ShinuchiAccuracy
+            {
+                get
+                {
+                    int numNotes = Record.shinuchiHiScore.excellent + Record.shinuchiHiScore.good + Record.shinuchiHiScore.bad;
+                    if (numNotes == 0)
+                    {
+                        return 0f;
+                    }
+                    return (Record.shinuchiHiScore.excellent + (Record.shinuchiHiScore.good / 2f)) / numNotes;
+                }
+            }
             public SongDifficultyData(MusicDataInterface.MusicInfoAccesser musicInfo, EnsoData.EnsoLevelType level)
             {
-                MusicInfo = musicInfo;
                 IsEnabled = true;
+                MusicInfo = musicInfo;
                 EnsoLevelType = level;
-                Star = musicInfo.Stars[(int)EnsoLevelType];
-                Genre = (EnsoData.SongGenre)musicInfo.GenreNo;
+                //Star = musicInfo.Stars[(int)EnsoLevelType];
+                //Genre = (EnsoData.SongGenre)musicInfo.GenreNo;
                 if (Star != 0)
                 {
                     MusicDataUtility.GetNormalRecordInfo(0, musicInfo.UniqueId, level, out var result);
-                    Crown = result.crown;
+                    Record = result;
+                    //Crown = result.crown;
                 }
                 else
                 {
