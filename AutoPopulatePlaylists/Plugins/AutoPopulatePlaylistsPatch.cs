@@ -137,22 +137,23 @@ namespace AutoPopulatePlaylists.Plugins
                         }
                     }
 
+                    bool removeDuplicates = false;
                     if (playlistData.SortTypes.Count > 0)
                     {
                         songDataList = SongListSorter.SortSongs(songDataList, playlistData);
+                        removeDuplicates = SongListSorter.RemoveDuplicates(playlistData);
+                    }
 
-                        bool removeDuplicates = SongListSorter.RemoveDuplicates(playlistData);
-                        for (int i = 0; i < songDataList.Count; i++)
+                    for (int i = 0; i < songDataList.Count; i++)
+                    {
+                        if (i >= 1)
                         {
-                            if (i >= 1)
+                            if (removeDuplicates && songDataList[i].MusicInfo == result[result.Count - 1])
                             {
-                                if (removeDuplicates && songDataList[i].MusicInfo == result[result.Count - 1])
-                                {
-                                    continue;
-                                }
+                                continue;
                             }
-                            result.Add(songDataList[i].MusicInfo);
                         }
+                        result.Add(songDataList[i].MusicInfo);
                     }
                 }
             }
