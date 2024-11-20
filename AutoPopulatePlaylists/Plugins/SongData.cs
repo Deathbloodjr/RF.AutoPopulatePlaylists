@@ -154,7 +154,7 @@ namespace AutoPopulatePlaylists.Plugins
                     }
                     else
                     {
-                        return 0;
+                        return int.MaxValue;
                     }
                 }
             }
@@ -176,7 +176,7 @@ namespace AutoPopulatePlaylists.Plugins
                     }
                     else
                     {
-                        return 0;
+                        return int.MaxValue;
                     }
                 }
             }
