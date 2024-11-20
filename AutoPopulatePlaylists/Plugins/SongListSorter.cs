@@ -9,7 +9,7 @@ namespace AutoPopulatePlaylists.Plugins
 {
     public enum SortType
     {
-        Default, // Is default even needed? maybe just to break out?
+        //Default, // Is default even needed? maybe just to break out?
         Order,
         Genre,
         Difficulty,
@@ -23,6 +23,7 @@ namespace AutoPopulatePlaylists.Plugins
         Goods,
         Oks,
         Bads,
+        OksAndBads,
         DrumrollCount,
         MaxCombo,
         PlayCount,
@@ -58,6 +59,7 @@ namespace AutoPopulatePlaylists.Plugins
             AddOrReplaceSortFunction(SortType.Goods, (x) => x.Goods);
             AddOrReplaceSortFunction(SortType.Oks, (x) => x.Oks);
             AddOrReplaceSortFunction(SortType.Bads, (x) => x.Bads);
+            AddOrReplaceSortFunction(SortType.OksAndBads, (x) => x.OksAndBads);
             AddOrReplaceSortFunction(SortType.DrumrollCount, (x) => x.Drumroll);
             AddOrReplaceSortFunction(SortType.MaxCombo, (x) => x.Combo);
             AddOrReplaceSortFunction(SortType.PlayCount, (x) => x.PlayCount);
@@ -87,19 +89,40 @@ namespace AutoPopulatePlaylists.Plugins
             }
         }
 
-        static IOrderedEnumerable<SongDifficultyData> SortSongs(List<SongDifficultyData> songs, SortType sortType)
+        static IOrderedEnumerable<SongDifficultyData> SortSongs(List<SongDifficultyData> songs, SortType sortType, bool isDescending = false)
         {
             if (SortStringFunctions.ContainsKey(sortType))
             {
-                return songs.OrderBy(SortStringFunctions[sortType]);
+                if (!isDescending)
+                {
+                    return songs.OrderBy(SortStringFunctions[sortType]);
+                }
+                else
+                {
+                    return songs.OrderByDescending(SortStringFunctions[sortType]);
+                }
             }
             else if (SortIntFunctions.ContainsKey(sortType))
             {
-                return songs.OrderBy(SortIntFunctions[sortType]);
+                if (!isDescending)
+                {
+                    return songs.OrderBy(SortIntFunctions[sortType]);
+                }
+                else
+                {
+                    return songs.OrderByDescending(SortIntFunctions[sortType]);
+                }
             }
             else if (SortFloatFunctions.ContainsKey(sortType))
             {
-                return songs.OrderBy(SortFloatFunctions[sortType]);
+                if (!isDescending)
+                {
+                    return songs.OrderBy(SortFloatFunctions[sortType]);
+                }
+                else
+                {
+                    return songs.OrderByDescending(SortFloatFunctions[sortType]);
+                }
             }
             else
             {
@@ -108,19 +131,40 @@ namespace AutoPopulatePlaylists.Plugins
             }
         }
 
-        static IOrderedEnumerable<SongDifficultyData> SortSongs(IOrderedEnumerable<SongDifficultyData> songs, SortType sortType)
+        static IOrderedEnumerable<SongDifficultyData> SortSongs(IOrderedEnumerable<SongDifficultyData> songs, SortType sortType, bool isDescending = false)
         {
             if (SortStringFunctions.ContainsKey(sortType))
             {
-                return songs.ThenBy(SortStringFunctions[sortType]);
+                if (!isDescending)
+                {
+                    return songs.ThenBy(SortStringFunctions[sortType]);
+                }
+                else
+                {
+                    return songs.ThenByDescending(SortStringFunctions[sortType]);
+                }
             }
             else if (SortIntFunctions.ContainsKey(sortType))
             {
-                return songs.ThenBy(SortIntFunctions[sortType]);
+                if (!isDescending)
+                {
+                    return songs.ThenBy(SortIntFunctions[sortType]);
+                }
+                else
+                {
+                    return songs.ThenByDescending(SortIntFunctions[sortType]);
+                }
             }
             else if (SortFloatFunctions.ContainsKey(sortType))
             {
-                return songs.ThenBy(SortFloatFunctions[sortType]);
+                if (!isDescending)
+                {
+                    return songs.ThenBy(SortFloatFunctions[sortType]);
+                }
+                else
+                {
+                    return songs.ThenByDescending(SortFloatFunctions[sortType]);
+                }
             }
             else
             {
@@ -129,31 +173,31 @@ namespace AutoPopulatePlaylists.Plugins
             }
         }
 
-        public static List<SongDifficultyData> SortSongs(List<SongDifficultyData> songs, List<SortType> sortTypes)
+        public static List<SongDifficultyData> SortSongs(List<SongDifficultyData> songs, PlaylistData playlistData)
         {
-            if (sortTypes.Count == 0)
+            if (playlistData.SortTypes.Count == 0)
             {
                 return songs;
             }
 
             InitializeSortFunctions();
 
-            var sortedList = SortSongs(songs, sortTypes[0]);
-            for (int i = 1; i < sortTypes.Count; i++)
+            var sortedList = SortSongs(songs, playlistData.SortTypes[0].SortType, !playlistData.SortTypes[0].IsAscending);
+            for (int i = 1; i < playlistData.SortTypes.Count; i++)
             {
-                sortedList = SortSongs(sortedList, sortTypes[i]);
+                sortedList = SortSongs(sortedList, playlistData.SortTypes[i].SortType, !playlistData.SortTypes[i].IsAscending);
             }
 
             return sortedList.ToList();
         }
 
-        public static bool RemoveDuplicates(List<SortType> sortTypes)
+        public static bool RemoveDuplicates(PlaylistData playlistData)
         {
-            if (sortTypes.Count == 0)
+            if (playlistData.SortTypes.Count == 0)
             {
                 return true;
             }
-            if (RemoveDuplicateSorts.Contains(sortTypes[0]))
+            if (RemoveDuplicateSorts.Contains(playlistData.SortTypes[0].SortType))
             {
                 return true;
             }

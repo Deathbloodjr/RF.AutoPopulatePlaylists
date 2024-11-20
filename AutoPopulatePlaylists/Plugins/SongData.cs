@@ -14,7 +14,6 @@ namespace AutoPopulatePlaylists.Plugins
 
         public SongData(MusicDataInterface.MusicInfoAccesser musicInfo)
         {
-           
             if (musicInfo.Debug)
             {
                 return;
@@ -180,6 +179,28 @@ namespace AutoPopulatePlaylists.Plugins
                     else if (ShinuchiNoteCount != 0)
                     {
                         return Record.shinuchiHiScore.bad;
+                    }
+                    else
+                    {
+                        return int.MaxValue;
+                    }
+                }
+            }
+            public int OksAndBads
+            {
+                get
+                {
+                    if (NormalNoteCount != 0 && ShinuchiNoteCount != 0)
+                    {
+                        return Math.Min(Record.normalHiScore.bad + Record.normalHiScore.good, Record.shinuchiHiScore.bad + Record.shinuchiHiScore.good);
+                    }
+                    else if (NormalNoteCount != 0)
+                    {
+                        return Record.normalHiScore.bad + Record.normalHiScore.good;
+                    }
+                    else if (ShinuchiNoteCount != 0)
+                    {
+                        return Record.shinuchiHiScore.bad + Record.shinuchiHiScore.good;
                     }
                     else
                     {

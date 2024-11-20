@@ -8,6 +8,17 @@ using UnityEngine.Android;
 
 namespace AutoPopulatePlaylists.Plugins
 {
+    struct SortData
+    {
+        public SortType SortType;
+        public bool IsAscending;
+
+        public SortData(SortType sortType, bool isAscending = true)
+        {
+            SortType = sortType;
+            IsAscending = isAscending;
+        }
+    }
     class PlaylistData
     {
         public bool IsEnabled { get; set; } = false;
@@ -16,6 +27,7 @@ namespace AutoPopulatePlaylists.Plugins
         public List<int> Stars { get; set; } = new List<int>();
         public List<DataConst.CrownType> Crowns { get; set; } = new List<DataConst.CrownType>();
         public List<EnsoData.SongGenre> Genres { get; set; } = new List<EnsoData.SongGenre>();
+        public List<SortData> SortTypes { get; set; } = new List<SortData>();
 
         // I don't know if System.Text.Json is going to work properly within a mod, but I guess we'll give it a shot
         // Worst case, it isn't too rough to convert over to the Lightweight Json library
@@ -214,6 +226,38 @@ namespace AutoPopulatePlaylists.Plugins
                             default:
                                 Logger.Log("Couldn't parse Genre value: " + genre);
                                 break;
+                        }
+                    }
+                }
+                if (node["Sorting"] != null)
+                {
+                    // This is pretty damn messy, but if it works, it works
+                    var sorting = node["Sorting"].AsArray();
+                    for (int i = 0; i < sorting.Count; i++)
+                    {
+                        var sort = sorting[i].GetValue<string>();
+                        sort = sort.Trim().ToLower();
+                        var split = sort.Split(',');
+                        sort = split[0].Trim();
+
+                        if (Enum.TryParse(typeof(SortType), sort, true, out var result))
+                        {
+                            var sortType = (SortType)(result);
+                            bool isAscending = true;
+                            if (split.Length > 1)
+                            {
+                                var asc = split[1].Trim();
+                                if (asc == "desc" ||
+                                    asc == "descending")
+                                {
+                                    isAscending = false;
+                                }
+                            }
+                            SortTypes.Add(new SortData((SortType)result, isAscending));
+                        }
+                        else
+                        {
+                            Logger.Log("Couldn't parse Sorting value: " + sort);
                         }
                     }
                 }

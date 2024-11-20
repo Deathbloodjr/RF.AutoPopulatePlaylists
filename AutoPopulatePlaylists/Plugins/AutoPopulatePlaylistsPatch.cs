@@ -137,27 +137,23 @@ namespace AutoPopulatePlaylists.Plugins
                         }
                     }
 
-                    List<SortType> sorts = new List<SortType>()
+                    if (playlistData.SortTypes.Count > 0)
                     {
-                        SortType.Oks
-                    };
+                        songDataList = SongListSorter.SortSongs(songDataList, playlistData);
 
-                    songDataList = SongListSorter.SortSongs(songDataList, sorts);
-
-                    bool removeDuplicates = SongListSorter.RemoveDuplicates(sorts);
-                    for (int i = 0; i < songDataList.Count; i++)
-                    {
-                        if (i >= 1)
+                        bool removeDuplicates = SongListSorter.RemoveDuplicates(playlistData);
+                        for (int i = 0; i < songDataList.Count; i++)
                         {
-                            if (removeDuplicates && songDataList[i].MusicInfo == result[result.Count - 1])
+                            if (i >= 1)
                             {
-                                continue;
+                                if (removeDuplicates && songDataList[i].MusicInfo == result[result.Count - 1])
+                                {
+                                    continue;
+                                }
                             }
+                            result.Add(songDataList[i].MusicInfo);
                         }
-                        result.Add(songDataList[i].MusicInfo);
                     }
-
-
                 }
             }
 
