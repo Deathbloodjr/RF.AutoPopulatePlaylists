@@ -23,6 +23,13 @@ namespace AutoPopulatePlaylists.Plugins
             {
                 return;
             }
+            // I hate this
+            if (musicInfo.Id == "sw1op" ||
+                musicInfo.Id == "gldarm" ||
+                musicInfo.Id == "tkstad")
+            {
+                return;
+            }
 
             DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Easy));
             DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Normal));

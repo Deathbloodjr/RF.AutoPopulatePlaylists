@@ -125,7 +125,7 @@ namespace AutoPopulatePlaylists.Plugins
                         var uniqueId = songList[i].UniqueId;
                         if ((validUniqueIds.Contains(uniqueId) && 
                             SingletonMonoBehaviour<CommonObjects>.Instance.ServerDataCache.IsAvailableSong(songList[i])) || 
-                            songList[i].IsDefault)
+                            (songList[i].IsDefault || songList[i].InPackage == MusicDataInterface.InPackageType.HasSongAndFumen))
                         {
                             SongData data = new SongData(songList[i]);
                             songDataList.AddRange(data.GetValidSongDifficulties(playlistData));
@@ -139,7 +139,7 @@ namespace AutoPopulatePlaylists.Plugins
 
                     List<SortType> sorts = new List<SortType>()
                     {
-                        SortType.AlphabeticalTitle
+                        SortType.Oks
                     };
 
                     songDataList = SongListSorter.SortSongs(songDataList, sorts);
