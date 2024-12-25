@@ -16,7 +16,7 @@ namespace AutoPopulatePlaylists.Plugins
         AlphabeticalTitle,
         AlphabeticalSubtitle,
         AlphabeticalSongId,
-        UniqueId, // I don't know why anyone would ever want to sort by UniqueId, but go ahead
+        UniqueId, // I don't know why anyone would ever want to sort by UniqueId, but go ahead. Actually this might be closest to an ordered by release date sorting.
         Score,
         ScoreShinuchi,
         Accuracy,

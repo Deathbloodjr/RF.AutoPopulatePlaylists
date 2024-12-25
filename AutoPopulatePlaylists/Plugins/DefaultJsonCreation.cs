@@ -2,7 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using UnityEngine;
+using static Il2CppSystem.Linq.Expressions.Interpreter.CastInstruction.CastInstructionNoT;
 
 namespace AutoPopulatePlaylists.Plugins
 {
@@ -17,230 +22,115 @@ namespace AutoPopulatePlaylists.Plugins
             }
             if (!File.Exists(filePath))
             {
-                // I don't know if I want to just write the text that would be the file, or create the PlaylistData objects and generate the file from that
-                // I'm just going to write the text, since I'm not sure how to do comments by generating the Json from objects
+                JsonObject defaultFile = GetDefaultJson();
 
-                // Yeah this is kinda shit, but it gives the most control over what the example file will look like
-                // Yeah I don't wanna do this again
-                List<string> newLines = new List<string>()
+                JsonSerializerOptions options = new JsonSerializerOptions()
                 {
-                    "{",
-                    "    \"Pops\": {",
-                    "        \"_\": \"All entries beginning with _ are not necessary. They are just comments.\",",
-                    "        \"_1\": \"Enabled will set that playlist overrite as enabled or disabled\",",
-                    "        \"Enabled\": true,",
-                    "",
-                    "        \"_2\": \"Name will change the name of the playlist\",",
-                    "        \"_3\": \"You can remove the Name line, or set it to blank to keep the default name\",",
-                    "        \"Name\": \"Uncleared 1-6 Stars\",",
-                    "",
-                    "        \"_4\": \"Difficulties can be set to Easy, Normal, Hard, Oni, and/or Ura\",",
-                    "        \"_5\": \"You can also keep Difficulties empty to set it to every difficulty\",",
-                    "        \"Difficulties\": [",
-                    "            \"Oni\",",
-                    "            \"Ura\"",
-                    "        ],",
-                    "",
-                    "        \"_6\": \"Stars can be set to 1 through 10\",",
-                    "        \"_7\": \"You can also keep Stars empty to set it to every number\",",
-                    "        \"Stars\": [",
-                    "            1,2,3,4,5,6",
-                    "        ],",
-                    "",
-                    "        \"_8\": \"Crowns can be set to None, Silver, Gold, and/or Rainbow\",",
-                    "        \"_9\": \"You can also keep Crowns empty to set it to every crown type\",",
-                    "        \"Crowns\": [",
-                    "            \"None\"",
-                    "        ],",
-                    "",
-                    "        \"_a\": \"Genres can be set to Pops, Anime, Vocaloid, Variety, Classical, Game Music, and/or Namco Original\",",
-                    "        \"_b\": \"You can also keep Genres empty to set it to every genre\",",
-                    "        \"Genres\": [",
-                    "            ",
-                    "        ]",
-                    "    },",
-                    "    \"Anime\": {",
-                    "        \"Enabled\": false,",
-                    "        \"Name\": \"Uncleared 4-6 Stars on Hard (Disabled)\",",
-                    "        \"Difficulties\": [",
-                    "            \"Hard\"",
-                    "        ],",
-                    "        \"Stars\": [",
-                    "            4,5,6",
-                    "        ],",
-                    "        \"Crowns\": [",
-                    "            \"None\"",
-                    "        ],",
-                    "        \"Genres\": [",
-                    "            ",
-                    "        ]",
-                    "    },",
-                    "    \"Vocaloid\": {",
-                    "        \"Enabled\": true,",
-                    "        \"Name\": \"Uncleared 4-6 Stars on Hard (Enabled)\",",
-                    "        \"Difficulties\": [",
-                    "            \"Hard\"",
-                    "        ],",
-                    "        \"Stars\": [",
-                    "            4,5,6",
-                    "        ],",
-                    "        \"Crowns\": [",
-                    "            \"None\"",
-                    "        ],",
-                    "        \"Genres\": [",
-                    "            ",
-                    "        ]",
-                    "    },",
-                    "    \"Variety\": {",
-                    "        \"Enabled\": true,",
-                    "        \"Name\": \"Uncleared Vocaloid and Variety songs\",",
-                    "        \"Difficulties\": [",
-                    "            ",
-                    "        ],",
-                    "        \"Stars\": [",
-                    "            ",
-                    "        ],",
-                    "        \"Crowns\": [",
-                    "            \"None\"",
-                    "        ],",
-                    "        \"Genres\": [",
-                    "            \"Vocaloid\",",
-                    "            \"Variety\"",
-                    "        ]",
-                    "    },",
-                    "    \"Classical\": {",
-                    "        \"Enabled\": true,",
-                    "        \"Name\": \"All songs with Ura charts\",",
-                    "        \"Difficulties\": [",
-                    "            \"Ura\"",
-                    "        ],",
-                    "        \"Stars\": [",
-                    "            ",
-                    "        ],",
-                    "        \"Crowns\": [",
-                    "            ",
-                    "        ],",
-                    "        \"Genres\": [",
-                    "            ",
-                    "        ]",
-                    "    },",
-                    "    \"Game Music\": {",
-                    "        \"Enabled\": true,",
-                    "        \"Name\": \"All 8 Stars from any difficulty\",",
-                    "        \"Difficulties\": [",
-                    "            ",
-                    "        ],",
-                    "        \"Stars\": [",
-                    "            8",
-                    "        ],",
-                    "        \"Crowns\": [",
-                    "            ",
-                    "        ],",
-                    "        \"Genres\": [",
-                    "            ",
-                    "        ]",
-                    "    },",
-                    "    \"Namco Original\": {",
-                    "        \"Enabled\": true,",
-                    "        \"Name\": \"All Even Stars\",",
-                    "        \"Difficulties\": [",
-                    "            ",
-                    "        ],",
-                    "        \"Stars\": [",
-                    "            2,4,6,8,10",
-                    "        ],",
-                    "        \"Crowns\": [",
-                    "            ",
-                    "        ],",
-                    "        \"Genres\": [",
-                    "            ",
-                    "        ]",
-                    "    },",
-                    "    \"Playlist 1\": {",
-                    "        \"Enabled\": true,",
-                    "        \"Name\": \"Uncleared 1-6 Stars\",",
-                    "        \"Difficulties\": [",
-                    "            \"Oni\",",
-                    "            \"Ura\"",
-                    "        ],",
-                    "        \"Stars\": [",
-                    "            1,2,3,4,5,6",
-                    "        ],",
-                    "        \"Crowns\": [",
-                    "            \"None\"",
-                    "        ],",
-                    "        \"Genres\": [",
-                    "        ]",
-                    "    },",
-                    "    \"Playlist 2\": {",
-                    "        \"Enabled\": true,",
-                    "        \"Name\": \"Uncleared 7-8 Stars\",",
-                    "        \"Difficulties\": [",
-                    "            \"Oni\",",
-                    "            \"Ura\"",
-                    "        ],",
-                    "        \"Stars\": [",
-                    "            7,8",
-                    "        ],",
-                    "        \"Crowns\": [",
-                    "            \"None\"",
-                    "        ],",
-                    "        \"Genres\": [",
-                    "        ]",
-                    "    },",
-                    "    \"Playlist 3\": {",
-                    "        \"Enabled\": true,",
-                    "        \"Name\": \"Uncleared 9-10 Stars\",",
-                    "        \"Difficulties\": [",
-                    "            \"Oni\",",
-                    "            \"Ura\"",
-                    "        ],",
-                    "        \"Stars\": [",
-                    "            9,10",
-                    "        ],",
-                    "        \"Crowns\": [",
-                    "            \"None\"",
-                    "        ],",
-                    "        \"Genres\": [",
-                    "        ]",
-                    "    },",
-                    "    \"Playlist 4\": {",
-                    "        \"Enabled\": true,",
-                    "        \"Name\": \"All FCed Oni/Ura Songs\",",
-                    "        \"Difficulties\": [",
-                    "            \"Oni\",",
-                    "            \"Ura\"",
-                    "        ],",
-                    "        \"Stars\": [",
-                    "        ],",
-                    "        \"Crowns\": [",
-                    "            \"Gold\",",
-                    "            \"Rainbow\"",
-                    "        ],",
-                    "        \"Genres\": [",
-                    "        ]",
-                    "    },",
-                    "    \"Playlist 5\": {",
-                    "        \"Enabled\": true,",
-                    "        \"Name\": \"All DFCed Oni/Ura Songs\",",
-                    "        \"Difficulties\": [",
-                    "            \"Oni\",",
-                    "            \"Ura\"",
-                    "        ],",
-                    "        \"Stars\": [",
-                    "            ",
-                    "        ],",
-                    "        \"Crowns\": [",
-                    "            \"Rainbow\"",
-                    "        ],",
-                    "        \"Genres\": [",
-                    "        ]",
-                    "    }",
-                    "}",
+                    WriteIndented = true,
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
                 };
 
-                File.WriteAllLines(Plugin.Instance.ConfigPlaylistDataPath.Value, newLines);
+                File.WriteAllText(Plugin.Instance.ConfigPlaylistDataPath.Value, defaultFile.ToJsonString(options));
             }
+        }
+
+        public static void OutputPlaylistData(List<PlaylistData> playlists)
+        {
+            var node = GetDefaultJson();
+            var data = node["Data"].AsArray();
+            for (int i = 0; i < playlists.Count; i++)
+            {
+                var playlist = playlists[i];
+                JsonObject obj = new JsonObject()
+                {
+                    ["Enabled"] = playlist.IsEnabled,
+                    ["CategoryPanelData"] = new JsonObject()
+                    {
+                        ["Name"] = playlist.Name,
+                        ["BgColor"] = "#" + ColorUtility.ToHtmlStringRGB(playlist.BgColor),
+                        ["FrameType"] = playlist.FrameType.ToString(),
+                        ["FrameColor"] = "#" + ColorUtility.ToHtmlStringRGB(playlist.FrameColor),
+                    },
+                    ["Difficulties"] = new JsonArray(),
+                    ["Stars"] = new JsonArray(),
+                    ["Crowns"] = new JsonArray(),
+                    ["Genres"] = new JsonArray(),
+                    ["Sorting"] = new JsonArray(),
+                };
+
+                for (int j = 0; j < playlist.Difficulties.Count; j++)
+                {
+                    var value = playlist.Difficulties[j];
+                    if (value == EnsoData.EnsoLevelType.Mania)
+                    {
+                        obj["Difficulties"].AsArray().Add("Oni");
+                    }
+                    else
+                    {
+                        obj["Difficulties"].AsArray().Add(value.ToString());
+                    }
+                }
+                for (int j = 0; j < playlist.Stars.Count; j++)
+                {
+                    var value = playlist.Stars[j];
+                    obj["Stars"].AsArray().Add(value);
+                }
+                for (int j = 0; j < playlist.Crowns.Count; j++)
+                {
+                    var value = playlist.Crowns[j];
+                    obj["Crowns"].AsArray().Add(value.ToString());
+                }
+                for (int j = 0; j < playlist.Genres.Count; j++)
+                {
+                    var value = playlist.Genres[j];
+                    obj["Genres"].AsArray().Add(value.ToString());
+                }
+                for (int j = 0; j < playlist.SortTypes.Count; j++)
+                {
+                    var value = playlist.SortTypes[j];
+                    obj["Sorting"].AsArray().Add(value.ToString());
+                }
+
+                data.Add(obj);
+            }
+
+
+            JsonSerializerOptions options = new JsonSerializerOptions()
+            {
+                WriteIndented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            };
+
+            File.Copy(Plugin.Instance.ConfigPlaylistDataPath.Value, Plugin.Instance.ConfigPlaylistDataPath.Value.Replace(".json", "_bak.json"), true);
+            File.WriteAllText(Plugin.Instance.ConfigPlaylistDataPath.Value, node.ToJsonString(options));
+        }
+
+        static JsonObject GetDefaultJson()
+        {
+            return new JsonObject()
+            {
+                ["Example"] = new JsonObject()
+                {
+
+                },
+                ["Template"] = new JsonObject()
+                {
+                    ["Enabled"] = true,
+                    ["CategoryPanelData"] = new JsonObject()
+                    {
+                        ["Name"] = "",
+                        ["BgColor"] = "#FFFFFF",
+                        ["FrameType"] = "SingleColor",
+                        ["FrameColor"] = "#FFFFFF",
+                    },
+                    ["Difficulties"] = new JsonArray(),
+                    ["Stars"] = new JsonArray(),
+                    ["Crowns"] = new JsonArray(),
+                    ["Genres"] = new JsonArray(),
+                    ["Sorting"] = new JsonArray(),
+                },
+                ["Data"] = new JsonArray(),
+            };
         }
     }
 }

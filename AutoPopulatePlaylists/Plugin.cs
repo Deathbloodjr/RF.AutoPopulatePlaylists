@@ -11,6 +11,7 @@ using System.Collections;
 namespace AutoPopulatePlaylists
 {
     [BepInPlugin(MyPluginInfo.PLUGIN_GUID, ModName, MyPluginInfo.PLUGIN_VERSION)]
+    [BepInDependency("com.DB.RF.CustomPlaylists")]
     public class Plugin : BasePlugin
     {
         public const string ModName = "AutoPopulatePlaylists";
@@ -61,6 +62,7 @@ namespace AutoPopulatePlaylists
                 result &= PatchFile(typeof(LanguageHook));
                 DefaultJsonCreation.CreateDefaultFile();
                 AutoPopulatePlaylistsPatch.InitializePlaylistData();
+                AutoPopulatePlaylistsPatch.CreateCustomPlaylists();
                 if (result)
                 {
                     Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_NAME} is loaded!");
