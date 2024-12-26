@@ -119,8 +119,8 @@ namespace AutoPopulatePlaylists.Plugins
                     ["CategoryPanelData"] = new JsonObject()
                     {
                         ["Name"] = "",
-                        ["BgColor"] = "#FFFFFF",
-                        ["FrameType"] = "SingleColor",
+                        ["BgColor"] = "#F7F1E1",
+                        ["FrameType"] = "None",
                         ["FrameColor"] = "#FFFFFF",
                     },
                     ["Difficulties"] = new JsonArray(),
