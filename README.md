@@ -2,7 +2,9 @@
  A Rhythm Festival mod to automatically populate specified filter lists based on specified criteria.\
  When you first install the mod, a default json file will be generated in BepInEx/data/AutoPopulatePlaylists.\
  Use this default file to create your filters however you like. 
- 
+  
+  <a href="https://shorturl.at/WSoE7"> <img src="Resources/InstallButton.png" alt="One-click Install using the Taiko Mod Manager" width="256"/> </a>
+  
 # Requirements
  Visual Studio 2022 or newer\
  Taiko no Tatsujin: Rhythm Festival
@@ -15,7 +17,11 @@
  Newer versions of BepInEx could have breaking API changes until the first stable v6 release, so those are not recommended at this time.
  
  Attempt to build the project, or copy the .csproj.user file from the Resources file to the same directory as the .csproj file.\
- Edit the .csproj.user file and place your Rhythm Festival file location in the "GameDir" variable.
+ Edit the .csproj.user file and place your Rhythm Festival file location in the "GameDir" variable.\
+ Download or build the [SaveProfileManager](https://github.com/Deathbloodjr/RF.SaveProfileManager) mod, and place that dll full path in SaveProfileManagerPath.
+ Download or build the [CustomPlaylists](https://github.com/Deathbloodjr/RF.CustomPlaylists) mod, and place that dll full path in CustomPlaylistsPath.
+
+Add BepInEx as a nuget package source (https://nuget.bepinex.dev/v3/index.json)
 
 
 # Links 

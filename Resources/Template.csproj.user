@@ -2,7 +2,8 @@
 <Project>
   <PropertyGroup>
     <GameDir></GameDir>
-    <CustomPlaylistPath></CustomPlaylistPath>
     <CopyOutputFiles>false</CopyOutputFiles>
+    <SaveProfileManagerPath></SaveProfileManagerPath>
+    <CustomPlaylistsPath></CustomPlaylistsPath>
   </PropertyGroup>
 </Project>
