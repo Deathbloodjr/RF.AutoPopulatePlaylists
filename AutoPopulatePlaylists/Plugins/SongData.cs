@@ -5,14 +5,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static MusicDataInterface;
 
 namespace AutoPopulatePlaylists.Plugins
 {
     internal class SongData
     {
+        static Dictionary<MusicDataInterface.MusicInfoAccesser, SongData> SongDataDictionary = new Dictionary<MusicDataInterface.MusicInfoAccesser, SongData>();
+
         List<SongDifficultyData> DifficultyData { get; set; } = new List<SongDifficultyData>();
 
-        public SongData(MusicDataInterface.MusicInfoAccesser musicInfo)
+        SongData(MusicDataInterface.MusicInfoAccesser musicInfo)
         {
             if (musicInfo.Debug)
             {
@@ -30,14 +33,32 @@ namespace AutoPopulatePlaylists.Plugins
                 return;
             }
 
-            DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Easy));
-            DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Normal));
-            DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Hard));
-            DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Mania));
+            var isDownloaded = PackedSongUtility.CheckSongFileExists(musicInfo.UniqueId);
+            if (musicInfo.IsDefault || musicInfo.InPackage == MusicDataInterface.InPackageType.HasSongAndFumen)
+            {
+                isDownloaded = true;
+            }
+
+            DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Easy, isDownloaded));
+            DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Normal, isDownloaded));
+            DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Hard, isDownloaded));
+            DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Mania, isDownloaded));
             if (musicInfo.Stars[(int)EnsoData.EnsoLevelType.Ura] != 0)
             {
-                DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Ura));
+                DifficultyData.Add(new SongDifficultyData(musicInfo, EnsoData.EnsoLevelType.Ura, isDownloaded));
             }
+        }
+
+        public static SongData GetSongData(MusicDataInterface.MusicInfoAccesser musicInfo)
+        {
+            if (SongDataDictionary.ContainsKey(musicInfo))
+            {
+                return SongDataDictionary[musicInfo];
+            }
+
+            var songData = new SongData(musicInfo);
+            SongDataDictionary.Add(musicInfo, songData);
+            return songData;
         }
 
         public List<SongDifficultyData> GetValidSongDifficulties(PlaylistData playlistData)
@@ -48,6 +69,10 @@ namespace AutoPopulatePlaylists.Plugins
                 if (DifficultyData[i].IsValidWithFilter(playlistData))
                 {
                     validDifficulties.Add(DifficultyData[i]);
+                    if (!playlistData.SongsDownloaded)
+                    {
+                        break;
+                    }
                 }
             }
             return validDifficulties;
@@ -71,7 +96,22 @@ namespace AutoPopulatePlaylists.Plugins
             public bool IsEnabled { get; set; }
             public MusicDataInterface.MusicInfoAccesser MusicInfo { get; set; } = null;
             public EnsoData.EnsoLevelType EnsoLevelType { get; set; } = EnsoData.EnsoLevelType.Num;
-            public EnsoRecordInfo Record { get; set; }
+            public EnsoRecordInfo Record 
+            { 
+                get
+                {
+                    if (IsEnabled)
+                    {
+                        MusicDataUtility.GetNormalRecordInfo(0, MusicInfo.UniqueId, EnsoLevelType, out var result);
+                        return result;
+                    }
+                    else
+                    {
+                        return new EnsoRecordInfo();
+                    }
+                }
+            }
+            public bool IsDownloaded { get; set; }
             public EnsoData.SongGenre Genre
             {
                 get
@@ -263,23 +303,19 @@ namespace AutoPopulatePlaylists.Plugins
                     return (Record.shinuchiHiScore.excellent + (Record.shinuchiHiScore.good / 2f)) / numNotes;
                 }
             }
-            public SongDifficultyData(MusicDataInterface.MusicInfoAccesser musicInfo, EnsoData.EnsoLevelType level)
+            public SongDifficultyData(MusicDataInterface.MusicInfoAccesser musicInfo, EnsoData.EnsoLevelType level, bool isDownloaded)
             {
                 IsEnabled = true;
                 MusicInfo = musicInfo;
                 EnsoLevelType = level;
                 //Star = musicInfo.Stars[(int)EnsoLevelType];
                 //Genre = (EnsoData.SongGenre)musicInfo.GenreNo;
-                if (Star != 0)
-                {
-                    MusicDataUtility.GetNormalRecordInfo(0, musicInfo.UniqueId, level, out var result);
-                    Record = result;
-                    //Crown = result.crown;
-                }
-                else
+                if (Star == 0)
                 {
                     IsEnabled = false;
                 }
+
+                IsDownloaded = isDownloaded;
             }
 
             public bool IsValidWithFilter(PlaylistData playlistData)
@@ -305,6 +341,10 @@ namespace AutoPopulatePlaylists.Plugins
                 }
                 if (playlistData.Genres.Count != 0 &&
                     !playlistData.Genres.Contains(Genre))
+                {
+                    return false;
+                }
+                if (playlistData.SongsDownloaded != IsDownloaded)
                 {
                     return false;
                 }

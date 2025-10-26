@@ -42,6 +42,7 @@ namespace AutoPopulatePlaylists.Plugins
         public List<int> Stars { get; set; } = new List<int>();
         public List<DataConst.CrownType> Crowns { get; set; } = new List<DataConst.CrownType>();
         public List<EnsoData.SongGenre> Genres { get; set; } = new List<EnsoData.SongGenre>();
+        public bool SongsDownloaded { get; set; } = true;
         public List<SortData> SortTypes { get; set; } = new List<SortData>();
 
         // I don't know if System.Text.Json is going to work properly within a mod, but I guess we'll give it a shot
@@ -296,6 +297,10 @@ namespace AutoPopulatePlaylists.Plugins
                             break;
                     }
                 }
+            }
+            if (node["SongsDownloaded"] != null)
+            {
+                SongsDownloaded = node["SongsDownloaded"].GetValue<bool>();
             }
             if (node["Sorting"] != null)
             {

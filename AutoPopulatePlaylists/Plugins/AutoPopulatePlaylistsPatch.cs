@@ -141,7 +141,7 @@ namespace AutoPopulatePlaylists.Plugins
                         SingletonMonoBehaviour<CommonObjects>.Instance.ServerDataCache.IsAvailableSong(songList[i])) ||
                         (songList[i].IsDefault || songList[i].InPackage == MusicDataInterface.InPackageType.HasSongAndFumen))
                     {
-                        SongData data = new SongData(songList[i]);
+                        SongData data = SongData.GetSongData(songList[i]);
                         songDataList.AddRange(data.GetValidSongDifficulties(playlist));
                         //if (data.IsValidWithFilter(playlistData))
                         //{
